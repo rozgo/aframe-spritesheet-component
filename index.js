@@ -6,14 +6,14 @@
 let SpriteSheet = AFRAME.registerComponent('sprite-sheet', {
     schema: {
         progress: { type: 'number', default: 0 },
-        frameIndex: { type: 'number', default: null },
-        frameName: { type: 'string', default: null },
+        frameIndex: { type: 'number', default: 0 },
+        frameName: { type: 'string' },
         cols: { type: 'number', default: 1 },
         rows: { type: 'number', default: 1 },
         firstFrame: { type: 'number', default: 0 },
-        lastFrame: { type: 'number', default: null },
+        lastFrame: { type: 'number' },
         cloneTexture: { default: false },
-        dataUrl: { type: 'string', default: null }
+        dataUrl: { type: 'string' }
     },
 
 

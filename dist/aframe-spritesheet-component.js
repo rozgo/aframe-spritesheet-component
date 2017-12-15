@@ -1,41 +1,41 @@
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
-
+/******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
-
+/******/
 /******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId])
+/******/ 		if(installedModules[moduleId]) {
 /******/ 			return installedModules[moduleId].exports;
-
+/******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			i: moduleId,
 /******/ 			l: false,
 /******/ 			exports: {}
 /******/ 		};
-
+/******/
 /******/ 		// Execute the module function
 /******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-
+/******/
 /******/ 		// Flag the module as loaded
 /******/ 		module.l = true;
-
+/******/
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-
-
+/******/
+/******/
 /******/ 	// expose the modules object (__webpack_modules__)
 /******/ 	__webpack_require__.m = modules;
-
+/******/
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
-
+/******/
 /******/ 	// identity function for calling harmony imports with the correct context
 /******/ 	__webpack_require__.i = function(value) { return value; };
-
+/******/
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
@@ -46,7 +46,7 @@
 /******/ 			});
 /******/ 		}
 /******/ 	};
-
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -55,13 +55,13 @@
 /******/ 		__webpack_require__.d(getter, 'a', getter);
 /******/ 		return getter;
 /******/ 	};
-
+/******/
 /******/ 	// Object.prototype.hasOwnProperty.call
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-
+/******/
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
-
+/******/
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 0);
 /******/ })
@@ -80,12 +80,14 @@
 var SpriteSheet = AFRAME.registerComponent('sprite-sheet', {
     schema: {
         progress: { type: 'number', default: 0 },
+        frameIndex: { type: 'number', default: 0 },
+        frameName: { type: 'string' },
         cols: { type: 'number', default: 1 },
         rows: { type: 'number', default: 1 },
         firstFrame: { type: 'number', default: 0 },
-        lastFrame: { type: 'number', default: null },
+        lastFrame: { type: 'number' },
         cloneTexture: { default: false },
-        dataUrl: { type: 'string', default: null }
+        dataUrl: { type: 'string' }
     },
 
     /**
@@ -93,8 +95,6 @@ var SpriteSheet = AFRAME.registerComponent('sprite-sheet', {
      */
     init: function init() {
         var _this = this;
-
-        console.log('init');
 
         // if specified load spritesheet json data
         if (this.data.dataUrl) {
@@ -147,7 +147,16 @@ var SpriteSheet = AFRAME.registerComponent('sprite-sheet', {
         // if no last frame is specified use the number of available frames
         var lastFrame = this.data.lastFrame ? this.data.lastFrame : this.numFrames - 1;
 
-        this.currentFrame = Math.round(this.data.progress * (lastFrame - this.data.firstFrame)) + this.data.firstFrame;
+        // decide current frame by this order: frame index (if specified), frame name (if specified), progress
+        if (this.data.frameIndex) {
+            this.currentFrame = this.data.frameIndex;
+        } else if (this.data.frameName && this.frameNameToIndex) {
+            var frameIndex = this.frameNameToIndex[this.data.frameName];
+            if (frameIndex != null) this.currentFrame = frameIndex;else console.warn('Spritesheet error - No such frame with name ' + this.data.frameName);
+        } else {
+            this.currentFrame = Math.round(this.data.progress * (lastFrame - this.data.firstFrame)) + this.data.firstFrame;
+        }
+
         this.adjustTexture(this.currentFrame);
     },
 
@@ -179,6 +188,12 @@ var SpriteSheet = AFRAME.registerComponent('sprite-sheet', {
                 _this2.framesData = Object.keys(_this2.spriteSheetData.frames).map(function (key) {
                     return _this2.spriteSheetData.frames[key];
                 });
+
+                // create a dictionary to map from keyframe names to frame number
+                _this2.frameNameToIndex = {};
+                Object.keys(_this2.spriteSheetData.frames).map(function (key, index) {
+                    _this2.frameNameToIndex[key] = index;
+                });
                 _this2.numFrames = _this2.framesData.length;
 
                 _this2.frameWidth = _this2.framesData[0].sourceSize.w;
@@ -202,7 +217,6 @@ var SpriteSheet = AFRAME.registerComponent('sprite-sheet', {
      * @param {number} frameNum
      */
     adjustTexture: function adjustTexture(frameNum) {
-        console.log(frameNum);
         // image hasn't loaded, can't draw anything
         if (!this.imageLoaded) return;
 
