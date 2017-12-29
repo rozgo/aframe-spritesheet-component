@@ -6,8 +6,7 @@ module.exports = {
         'aframe-spritesheet-component.min': './index.js',
     },
     output: {
-        path: './dist',
-        filename: '[name].js',
+        filename: './dist/[name].js',
     },
     plugins: [
         new webpack.optimize.UglifyJsPlugin({

@@ -27,7 +27,6 @@ let SpriteSheet = AFRAME.registerComponent('sprite-sheet', {
             this.mapCanvas = document.createElement( 'canvas' );
             this.textureCtx = this.mapCanvas.getContext( '2d' );
             this.texture = new THREE.Texture(this.mapCanvas);
-            this.getSpriteSheetData(this.data.dataUrl);
 
             // callback for when the image has loaded
             this.el.addEventListener('materialtextureloaded', () => {
@@ -37,6 +36,8 @@ let SpriteSheet = AFRAME.registerComponent('sprite-sheet', {
                 this.spriteSheetImage = this.el.object3D.children[0].material.map.image;
                 this.texture = new THREE.Texture(this.mapCanvas);
                 this.el.object3D.children[0].material.map = this.texture;
+
+                this.getSpriteSheetData(this.data.dataUrl);
             });
 
         } else {
@@ -113,38 +114,70 @@ let SpriteSheet = AFRAME.registerComponent('sprite-sheet', {
      * @param {string} url
      */
     getSpriteSheetData: function(url) {
-        let assetsEl = document.querySelector('a-assets');
-        if (assetsEl) {
-            assetsEl.fileLoader.load(url, data => {
-                this.spriteSheetData = JSON.parse(data);
-                this.framesData = Object.keys(this.spriteSheetData.frames).map(key => {
-                    return this.spriteSheetData.frames[key];
-                });
 
-                // create a dictionary to map from keyframe names to frame number
-                this.frameNameToIndex = {};
-                Object.keys(this.spriteSheetData.frames).map((key, index) => {
-                    this.frameNameToIndex[key] = index;
-                });
-                this.numFrames = this.framesData.length;
+        var el = document.getElementById(url);
+        var data = JSON.parse(el.data);
+        
+        this.spriteSheetData = data;
+        this.framesData = Object.keys(this.spriteSheetData.frames).map(key => {
+            return this.spriteSheetData.frames[key];
+        });
 
-                this.frameWidth = this.framesData[0].sourceSize.w;
-                this.frameHeight = this.framesData[0].sourceSize.h;
+        // create a dictionary to map from keyframe names to frame number
+        this.frameNameToIndex = {};
+        Object.keys(this.spriteSheetData.frames).map((key, index) => {
+            this.frameNameToIndex[key] = index;
+        });
+        this.numFrames = this.framesData.length;
 
-                this.mapCanvas.width = pow2ceil(this.frameWidth);
-                this.mapCanvas.height = pow2ceil(this.frameHeight);
+        this.frameWidth = this.framesData[0].sourceSize.w;
+        this.frameHeight = this.framesData[0].sourceSize.h;
 
-                this.texture.repeat.set(
-                    this.frameWidth / this.mapCanvas.width,
-                    this.frameHeight / this.mapCanvas.height
-                );
+        this.mapCanvas.width = pow2ceil(this.frameWidth);
+        this.mapCanvas.height = pow2ceil(this.frameHeight);
 
-                this.texture.offset.x = 0;
-                this.texture.offset.y = 1 - this.frameHeight / this.mapCanvas.height;
-            });
-        } else{
-            console.warn('Can\'t load spritesheet URL. No a-assets element present on the A-Scene!');
-        }
+        this.texture.repeat.set(
+            this.frameWidth / this.mapCanvas.width,
+            this.frameHeight / this.mapCanvas.height
+        );
+
+        this.texture.offset.x = 0;
+        this.texture.offset.y = 1 - this.frameHeight / this.mapCanvas.height;
+
+        // console.log(this.framesData[0]);
+
+        // let assetsEl = document.querySelector('a-assets');
+        // if (assetsEl) {
+        //     assetsEl.fileLoader.load(url, data => {
+        //         this.spriteSheetData = JSON.parse(data);
+        //         this.framesData = Object.keys(this.spriteSheetData.frames).map(key => {
+        //             return this.spriteSheetData.frames[key];
+        //         });
+
+        //         // create a dictionary to map from keyframe names to frame number
+        //         this.frameNameToIndex = {};
+        //         Object.keys(this.spriteSheetData.frames).map((key, index) => {
+        //             this.frameNameToIndex[key] = index;
+        //         });
+        //         this.numFrames = this.framesData.length;
+
+        //         this.frameWidth = this.framesData[0].sourceSize.w;
+        //         this.frameHeight = this.framesData[0].sourceSize.h;
+
+        //         this.mapCanvas.width = pow2ceil(this.frameWidth);
+        //         this.mapCanvas.height = pow2ceil(this.frameHeight);
+
+        //         this.texture.repeat.set(
+        //             this.frameWidth / this.mapCanvas.width,
+        //             this.frameHeight / this.mapCanvas.height
+        //         );
+
+        //         this.texture.offset.x = 0;
+        //         this.texture.offset.y = 1 - this.frameHeight / this.mapCanvas.height;
+        //     });
+        // } else{
+        //     console.warn('Can\'t load spritesheet URL. No a-assets element present on the A-Scene!');
+        // }
     },
 
     /**
